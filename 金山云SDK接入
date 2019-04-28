@@ -1,35 +1,68 @@
-#!/usr/bin/env python
 #-*- coding:utf-8 -*-
 import os
+import sys
+reload(sys)
+
+sys.setdefaultencoding('utf-8')
 from ks3.connection import Connection
+
 ak = 'AKLTShXQG7kWRMqY4wgPEeL8fg'
 sk = 'OGXAS5f25lQeGLJfVNtaNWU0b6HG+EOJOFZMzoFsbwoXI0cDvFBPB3XYHfAkzkHVDg=='
-c = Connection(ak, sk, host='ks3-cn-shanghai.ksyun.com', is_secure=False, domain_mode=False)
+c = Connection(ak, sk, host='ks3-cn-shanghai.ksyun.com', is_secure=False,  domain_mode=False)
 bucket_name = "ymz"
+acl = "public-read"
 
-upload_dir = "test/"
-if not os.path.exists("urlFILE.txt"):
-    print("urlFILE.txt 文件不存在!!!")
+# 判断输入参数个数是否正确
+if len(sys.argv) != 2:
+    print "\033[1;35m输入的参数个数不正确\033[0m"
+    print "\033[1;35m参考：python update.py test\033[0m"
+    exit(1)
+    
+# 当输入参数是目录时，自动把 / 去掉
+upload_dir = sys.argv[1]
+upload_dir = upload_dir.replace('/','')
+
+# 判断是否存在更新目录，不存在即退出
+if not os.path.exists(upload_dir):
+
+    print "\033[1;35m 没有这个目录:%s\033[0m" % upload_dir
+
     exit(1)
 
-with open('urlFILE.txt','r') as f:
+# 判断是否存在更新列表文件，不存在即退出
+if not os.path.exists("/data/rsync/client/urlFILE.txt"):
+
+    print "\033[1;35m urlFILE.txt 文件不存在!!!\033[0m"
+
+    exit(1)
+
+# 开始上传
+with open('/data/rsync/client/urlFILE.txt','r') as f:
     content = f.readlines()
-    #print(content)
     for f_n in content:
-        file_name = "/data/rsync/client/" + "test/" + f_n.split("\n")[0]
-        key_name = upload_dir + f_n.split("\n")[0]
+        file_name = "/data/rsync/client/" + upload_dir + "/" + f_n.split("\n")[0]
+        key_name = upload_dir + "/" + f_n.split("\n")[0]
+
         try:
             b = c.get_bucket(bucket_name)
             k = b.new_key(key_name)
-            print("正在上传:%s"%file_name)
-            ret=k.set_contents_from_filename(file_name, policy="private")
-            if ret and ret.status != 200:
-                raise ("上传失败")
-        except Exception as ex:
-            print(ex)
-            exit(1)
 
-    if(os.path.exists("urlFILE.txt")):
-        os.remove("urlFILE.txt")
+            print "正在上传:%s" % file_name
+
+            ret=k.set_contents_from_filename(file_name, policy=acl)
+
+            if ret and ret.status != 200:
+
+                raise "上传失败"
+
+        except Exception as ex:
+
+            print(ex)
+
+            exit(1)
+            
+    #上传完成之后删除更新列表文件
+    if(os.path.exists("/data/rsync/client/urlFILE.txt")):
+        os.remove("/data/rsync/client/urlFILE.txt")
     else:
-        print("没有urlFILE.txt文件")
+        print "没有urlFILE.txt文件"
