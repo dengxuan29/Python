@@ -6,8 +6,8 @@ reload(sys)
 sys.setdefaultencoding('utf-8')
 from ks3.connection import Connection
 
-ak = 'AKLTShXQG7kWRMqY4wgPEeL8fg'
-sk = 'OGXAS5f25lQeGLJfVNtaNWU0b6HG+EOJOFZMzoFsbwoXI0cDvFBPB3XYHfAkzkHVDg=='
+ak = '***'
+sk = '***'
 c = Connection(ak, sk, host='ks3-cn-shanghai.ksyun.com', is_secure=False,  domain_mode=False)
 bucket_name = "ymz"
 acl = "public-read"
