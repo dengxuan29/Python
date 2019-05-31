@@ -1,0 +1,23 @@
+#!/bin/bash
+newmenu="/data/game/"
+if [ -d $newmenu ]; then
+    menu=`ls $newmenu`
+    #echo $menu
+   for channel in $menu
+   do
+        cd ${newmenu}${channel}/
+        gamedir=`ls|grep "^[0-9]\{4\}"`;
+          for gameid in $gamedir
+           do
+              cd ${newmenu}${channel}/${gameid}/log
+                  tarfile=`find . -type f  -size +100M -exec ls {} \; | tr -d / | sed 's/.//'`
+                  for rmfile in $tarfile
+                     do
+                     echo "压缩${newmenu}${channel}/${gameid}/log/${rmfile}....."
+                     tar -czvf $(date +"%Y-%m-%d")_$rmfile.tar.gz ${rmfile}
+                     /bin/rm -rf $rmfile
+                     find . -ctime +15 -name "*.tar.gz" |xargs /bin/rm -rf
+                     done
+           done
+   done
+fi
